@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora Científica</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f9; /* Fondo gris claro */
+            margin: 0;
+        }
+        .calculator {
+            background-color: #fff; /* Fondo blanco */
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.1); /* Sombra suave */
+            width: 350px;
+        }
+        .display {
+            width: 100%;
+            height: 60px;
+            font-size: 28px;
+            text-align: right;
+            margin-bottom: 15px;
+            padding: 10px;
+            border: none;
+            border-radius: 10px;
+            background-color: #f9f9f9; /* Fondo gris muy claro */
+            color: #333; /* Texto oscuro */
+            box-shadow: inset 0px 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+        }
+        .button {
+            height: 50px;
+            font-size: 18px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            background-color: #e0e0e0; /* Botones grises claros */
+            color: #333; /* Texto oscuro */
+            transition: background-color 0.3s, transform 0.2s;
+        }
+        .button:hover {
+            background-color: #d0d0d0; /* Gris más oscuro al pasar el mouse */
+            transform: scale(1.05);
+        }
+        .button.operator {
+            background-color: #ff9500; /* Naranja para operadores */
+            color: white;
+        }
+        .button.operator:hover {
+            background-color: #e08900; /* Naranja más oscuro al pasar el mouse */
+        }
+        .button.clear {
+            background-color: #ff3b30; /* Rojo para "C" */
+            color: white;
+        }
+        .button.clear:hover {
+            background-color: #e63329; /* Rojo más oscuro al pasar el mouse */
+        }
+        .button.scientific {
+            background-color: #007aff; /* Azul para funciones científicas */
+            color: white;
+        }
+        .button.scientific:hover {
+            background-color: #006ce6; /* Azul más oscuro al pasar el mouse */
+        }
+        .button.constant {
+            background-color: #5856d6; /* Azul púrpura para constantes */
+            color: white;
+        }
+        .button.constant:hover {
+            background-color: #4a47c9; /* Azul púrpura más oscuro al pasar el mouse */
+        }
+        .button.special {
+            background-color: #34c759; /* Verde para botones especiales */
+            color: white;
+        }
+        .button.special:hover {
+            background-color: #2daf4f; /* Verde más oscuro al pasar el mouse */
+        }
+        .mode-switch {
+            background-color: #ffcc00; /* Amarillo para el botón de modo */
+            color: black;
+        }
+        .mode-switch:hover {
+            background-color: #e6b800; /* Amarillo más oscuro al pasar el mouse */
+        }
+    </style>
+</head>
+<body>
+
+<div class="calculator">
+    <input type="text" class="display" id="display" disabled>
+    <div class="buttons">
+        <!-- Fila 1 -->
+        <button class="button scientific" onclick="calculateSin()">sin</button>
+        <button class="button scientific" onclick="calculateCos()">cos</button>
+        <button class="button scientific" onclick="calculateTan()">tan</button>
+        <button class="button scientific" onclick="calculateLog()">log</button>
+        <button class="button scientific" onclick="calculateLn()">ln</button>
+
+        <!-- Fila 2 -->
+        <button class="button scientific" onclick="calculateSqrt()">√</button>
+        <button class="button scientific" onclick="calculateExp()">e^x</button>
+        <button class="button scientific" onclick="calculatePower()">xʸ</button>
+        <button class="button scientific" onclick="calculateFactorial()">x!</button>
+        <button class="button clear" onclick="clearDisplay()">C</button>
+
+        <!-- Fila 3 -->
+        <button class="button constant" onclick="appendConstant('π')">π</button>
+        <button class="button constant" onclick="appendConstant('e')">e</button>
+        <button class="button operator" onclick="appendOperator('/')">÷</button>
+        <button class="button operator" onclick="appendOperator('*')">×</button>
+        <button class="button operator" onclick="appendOperator('-')">−</button>
+
+        <!-- Fila 4 -->
+        <button class="button" onclick="appendNumber('7')">7</button>
+        <button class="button" onclick="appendNumber('8')">8</button>
+        <button class="button" onclick="appendNumber('9')">9</button>
+        <button class="button operator" onclick="appendOperator('+')">+</button>
+        <button class="button mode-switch" onclick="toggleMode()">Rad/Deg</button>
+
+        <!-- Fila 5 -->
+        <button class="button" onclick="appendNumber('4')">4</button>
+        <button class="button" onclick="appendNumber('5')">5</button>
+        <button class="button" onclick="appendNumber('6')">6</button>
+        <button class="button special" onclick="flipCoin()">Cara/Cruz</button>
+        <button class="button special" onclick="showJacobosMessage()">IA</button>
+
+        <!-- Fila 6 -->
+        <button class="button" onclick="appendNumber('1')">1</button>
+        <button class="button" onclick="appendNumber('2')">2</button>
+        <button class="button" onclick="appendNumber('3')">3</button>
+        <button class="button" onclick="appendNumber('0')" style="grid-column: span 2;">0</button>
+
+        <!-- Fila 7 -->
+        <button class="button" onclick="appendNumber('.')">.</button>
+        <button class="button" onclick="calculateResult()" style="grid-column: span 4;">=</button>
+    </div>
+</div>
+
+<script>
+    let display = document.getElementById('display');
+    let isRadians = false; // Modo inicial: grados
+
+    function appendNumber(number) {
+        if (display.value === "Error") {
+            display.value = "";
+        }
+        display.value += number;
+    }
+
+    function appendOperator(operator) {
+        if (display.value === "" || display.value === "Error") return;
+        const lastChar = display.value.slice(-1);
+        if (['+', '-', '*', '/', '÷', '×'].includes(lastChar)) {
+            display.value = display.value.slice(0, -1);
+        }
+        display.value += operator;
+    }
+
+    function clearDisplay() {
+        display.value = "";
+    }
+
+    function calculateResult() {
+        try {
+            // Reemplaza símbolos personalizados antes de evaluar
+            display.value = eval(display.value.replace(/×/g, '*').replace(/÷/g, '/'));
+        } catch (error) {
+            display.value = "Error";
+        }
+    }
+
+    function calculateSqrt() {
+        try {
+            const currentValue = parseFloat(display.value);
+            if (isNaN(currentValue) || currentValue < 0) {
+                display.value = "Error";
+                return;
+            }
+            display.value = Math.sqrt(currentValue); // Raíz cuadrada
+        } catch (error) {
+            display.value = "Error";
+        }
+    }
+
+    function calculateExp() {
+        try {
+            const currentValue = parseFloat(display.value);
+            if (isNaN(currentValue)) {
+                display.value = "Error";
+                return;
+            }
+            display.value = Math.exp(currentValue); // e elevado a x
+        } catch (error) {
+            display.value = "Error";
+        }
+    }
+
+    function calculatePower() {
+        try {
+            const currentValue = parseFloat(display.value);
+            if (isNaN(currentValue)) {
+                display.value = "Error";
+                return;
+            }
+            const exponent = prompt("Ingrese el exponente:");
+            if (isNaN(parseFloat(exponent))) {
+                display.value = "Error";
+                return;
+            }
+            display.value = Math.pow(currentValue, parseFloat(exponent)); // Potencia
+        } catch (error) {
+            display.value = "Error";
+        }
+    }
+
+    function calculateFactorial() {
+        try {
+            const currentValue = parseInt(display.value);
+            if (isNaN(currentValue) || currentValue < 0) {
+                display.value = "Error";
+                return;
+            }
+            let factorial = 1;
+            for (let i = 1; i <= currentValue; i++) {
+                factorial *= i;
+            }
+            display.value = factorial; // Factorial
+        } catch (error) {
+            display.value = "Error";
+        }
+    }
+
+    function calculateSin() {
+        try {
+            const currentValue = parseFloat(display.value);
+            if (isNaN(currentValue)) {
+                display.value = "Error";
+                return;
+            }
+            const angle = isRadians ? currentValue : (currentValue * Math.PI) / 180;
+            display.value = Math.sin(angle); // Seno
+        } catch (error) {
+            display.value = "Error";
+        }
+    }
+
+    function calculateCos() {
+        try {
+            const currentValue = parseFloat(display.value);
+            if (isNaN(currentValue)) {
+                display.value = "Error";
+                return;
+            }
+            const angle = isRadians ? currentValue : (currentValue * Math.PI) / 180;
+            display.value = Math.cos(angle); // Coseno
+        } catch (error) {
+            display.value = "Error";
+        }
+    }
+
+    function calculateTan() {
+        try {
+            const currentValue = parseFloat(display.value);
+            if (isNaN(currentValue)) {
+                display.value = "Error";
+                return;
+            }
+            const angle = isRadians ? currentValue : (currentValue * Math.PI) / 180;
+            display.value = Math.tan(angle); // Tangente
+        } catch (error) {
+            display.value = "Error";
+        }
+    }
+
+    function calculateLog() {
+        try {
+            const currentValue = parseFloat(display.value);
+            if (isNaN(currentValue) || currentValue <= 0) {
+                display.value = "Error";
+                return;
+            }
+            display.value = Math.log10(currentValue); // Logaritmo base 10
+        } catch (error) {
+            display.value = "Error";
+        }
+    }
+
+    function calculateLn() {
+        try {
+            const currentValue = parseFloat(display.value);
+            if (isNaN(currentValue) || currentValue <= 0) {
+                display.value = "Error";
+                return;
+            }
+            display.value = Math.log(currentValue); // Logaritmo natural
+        } catch (error) {
+            display.value = "Error";
+        }
+    }
+
+    function appendConstant(constant) {
+        if (constant === 'π') {
+            display.value += Math.PI.toFixed(5); // Añade π
+        } else if (constant === 'e') {
+            display.value += Math.E.toFixed(5); // Añade e
+        }
+    }
+
+    function toggleMode() {
+        isRadians = !isRadians; // Alterna entre radianes y grados
+        alert(isRadians ? "Modo: Radianes" : "Modo: Grados");
+    }
+
+    function flipCoin() {
+        const result = Math.random() < 0.5 ? "Cara" : "Cruz"; // Simula lanzamiento de moneda
+        display.value = result;
+    }
+
+    function showJacobosMessage() {
+        display.value = "Jacobo"; // Muestra el mensaje "Jacobo"
+    }
+</script>
+
+</body>
+</html>
