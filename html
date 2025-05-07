@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vamos a ver cuánto azúcar hay en 100g del producto</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 20px;
+            background-color: black;
+            color: white;
+            text-align: center; /* Centra el texto nuevamente */
+        }
+        input[type="text"] {
+            padding: 8px;
+            margin-right: 10px;
+            border: 1px solid #555;
+            border-radius: 4px;
+            width: 200px;
+            background-color: #333;
+            color: white;
+        }
+        button {
+            padding: 8px 15px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #resultado {
+            margin-top: 20px;
+            font-weight: bold;
+        }
+        .bajo-azucar {
+            color: limegreen;
+        }
+        .alto-azucar {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <h1>Vamos a ver cuánto azúcar hay en 100g del producto</h1>
+    <div>
+        <input type="text" id="nombreProducto" placeholder="Introduce el nombre del producto">
+        <button onclick="buscarProducto()">Buscar</button>
+    </div>
+    <div id="resultado"></div>
+
+    <script>
+        function buscarProducto() {
+            const nombreProducto = document.getElementById("nombreProducto").value;
+            const resultadoDiv = document.getElementById("resultado");
+            resultadoDiv.textContent = "Buscando información...";
+
+            const nombreCodificado = encodeURIComponent(nombreProducto);
+
+            fetch(`https://world.openfoodfacts.org/cgi/search.pl?search_terms=${nombreCodificado}&search_simple=1&action=process&json=1`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.products && data.products.length > 0) {
+                        const primerProducto = data.products[0];
+                        if (primerProducto.nutriments && primerProducto.nutriments["sugars_100g"]) {
+                            const azucar = primerProducto.nutriments["sugars_100g"];
+                            let mensaje = `El producto "${primerProducto.product_name}" contiene <span class="${azucar < 10 ? 'bajo-azucar' : 'alto-azucar'}">${azucar} gramos</span> de azúcar por cada 100 gramos.`;
+                            resultadoDiv.innerHTML = mensaje;
+                        } else {
+                            resultadoDiv.textContent = `No se encontró información de azúcar para el producto "${primerProducto.product_name}".`;
+                        }
+                    } else {
+                        resultadoDiv.textContent = `No se encontró ningún producto con el nombre "${nombreProducto}".`;
+                    }
+                })
+                .catch(error => {
+                    console.error("Error al consultar la API:", error);
+                    resultadoDiv.textContent = "Ocurrió un error al comunicarse con la API.";
+                });
+        }
+    </script>
+</body>
+</html>
